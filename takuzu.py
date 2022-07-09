@@ -1,10 +1,6 @@
-# takuzu.py: Template para implementação do projeto de Inteligência Artificial 2021/2022.
-# Devem alterar as classes e funções neste ficheiro de acordo com as instruções do enunciado.
-# Além das funções e classes já definidas, podem acrescentar outras que considerem pertinentes.
-
-# Grupo 11:
-# 99059 Carlota Tracana
-# 99082 Henrique Silva
+# Made by:
+# Carlota Tracana
+# Henrique Silva
 
 from operator import le
 from pickle import TRUE
@@ -22,7 +18,6 @@ from search import (
     recursive_best_first_search,
 )
 
-#python3 takuzu.py <instance_file>
 class TakuzuState:
     state_id = 0
 
@@ -36,61 +31,49 @@ class TakuzuState:
     def __lt__(self, other):
         return self.state_id < other.state_id
 
-    # TODO: outros metodos da classe
-
 class Board:
-    """Representação interna de um tabuleiro de Takuzu."""
+    """Internal representation of a takuzu board."""
     def __init__(self):
         self.bd = []
 
     def get_number(self, row: int, col: int):
-        """Devolve o valor na respetiva posição do tabuleiro."""
+        """Returns the value from a space on the board"""
         return self[row][col]
 
     def adjacent_vertical_numbers(self, row: int, col: int, max_len:int):
-        """Devolve os valores imediatamente abaixo e acima,
-        respectivamente."""
+        """Checks if the values on top and bottom of a given space on the board are the same as
+        the given position."""
         if(row != 0 and row != max_len - 1 and self[row-1][col] == self[row][col] and self[row][col] == self[row+1][col]):
             return True
         return False
 
     def adjacent_horizontal_numbers(self, row: int, col: int, max_len:int):
-        """Devolve os valores imediatamente à esquerda e à direita,
-        respectivamente."""
+        """Checks if the values of the left and right spaces of a given position on the board 
+        are the same as the one in the provided position."""
         if(col != 0 and col != max_len - 1 and self[row][col-1] == self[row][col] and self[row][col] == self[row][col+1]):
             return True
         return False
 
-    def ck_adjacent_vertical_numbers(self, row: int, col: int, max_len:int):
-        """Devolve os valores imediatamente abaixo e acima,
-        respectivamente."""
-        if(row != 0 and row != max_len - 1 and self[row-1][col] != 2 and self[row][col] == 2 and self[row-1][col] == self[row+1][col]):
-            return True
-        return False
-    
-    def ck_adjacent_horizontal_numbers(self, row: int, col: int, max_len:int):
-        """Devolve os valores imediatamente à esquerda e à direita,
-        respectivamente."""
-        if(col != 0 and col != max_len - 1 and self[row][col] == 2 and self[row][col-1] != 2 and self[row][col-1] == self[row][col+1]):
-            return True
-        return False
-
     def up_numbers(self, row:int, col:int):
+        """Checks top positions."""
         if(row > 1 and self[row-1][col] != 2 and self[row][col] == 2 and self[row-1][col] == self[row-2][col]):
             return True
         return False
     
     def down_numbers(self, row:int, col:int, max_len:int):
+        """Checks down positions."""
         if(row < max_len - 2 and self[row+1][col] != 2 and self[row][col] == 2 and self[row+1][col] == self[row+2][col]):
             return True
         return False
 
     def left_numbers(self, row:int, col:int):
+        """Checks left positions."""
         if(col > 1 and self[row][col-1] != 2 and self[row][col] == 2 and self[row][col-1] == self[row][col-2]):
             return True
         return False
 
     def right_numbers(self, row:int, col:int, max_len:int):
+        """Checks right positions."""
         if(col < max_len - 2 and self[row][col+1] != 2 and self[row][col] == 2 and self[row][col+1] == self[row][col+2]):
             return True
         return False
@@ -99,8 +82,8 @@ class Board:
 
     @staticmethod
     def parse_instance_from_stdin():
-        """Lê o test do standard input (stdin) que é passado como argumento
-        e retorna uma instância da classe Board."""
+        """Reads the test in standar input (stdin) which becomes and arg and returns
+        board which is of class type Board."""
         num = int(stdin.readline())
         board = Board()
         #python3 takuzu.py < testes_takuzu.input_T01
@@ -113,7 +96,7 @@ class Board:
 
 class Takuzu(Problem):
     def __init__(self, board: Board):
-        """O construtor especifica o estado inicial."""
+        """Constructor specifies initial state."""
         self.initial = TakuzuState(np.array(board.bd))
         self.initial.size = len(board.bd)
         if(self.initial.size % 2 == 0):
@@ -123,8 +106,9 @@ class Takuzu(Problem):
         self.initial.free_spc = np.count_nonzero(np.array(board.bd) == 2)
 
     def check_row(self, board, max_len, half_size):
-        """Verifica se existe uma linha com uma posicao vazia e com um numero de zeros maior
-        que uns ou vice versa"""
+        """Checks if a line, which has an empty position, has a sum of ones or zeros
+        equal to half the amount of spaces in that line."""
+        
         for row in range(max_len - 1, -1, -1):
             if (np.count_nonzero(board[row] == 1) == half_size):
                 for col in range(max_len - 1, -1, -1):
@@ -138,8 +122,8 @@ class Takuzu(Problem):
         return []
 
     def check_col(self, board, max_len, half_len):
-        """Verifica se existe uma coluna com uma posicao vazia e com um numero de zeros maior
-        que uns ou vice versa"""
+        """Checks if a column, which has an empty position, has a sum of ones or zeros
+        equal to half the amount of spaces in that column."""
         col_bd = np.transpose(board)
         for col in range(max_len - 1, -1, -1):
             if(np.count_nonzero(col_bd[col] == 1) == half_len):
@@ -155,7 +139,7 @@ class Takuzu(Problem):
         return []
     
     def check_three(self, board, max_len):#Returns an action
-        """Verifica se existem 2 posicoes consecutivas iguais"""
+        """Checks if there are two positions with the same value(0 or 1)"""
         #Check cols first
         for row in range(max_len):
             for col in range(max_len):
@@ -185,7 +169,7 @@ class Takuzu(Problem):
                     else:
                         return [tuple([row, col, 1])]
 
-                elif(Board.ck_adjacent_horizontal_numbers(board, row, col, max_len)):
+                elif(Board.adjacent_horizontal_numbers(board, row, col, max_len)):
                     if(board[row][col-1] == 1):
                         return [tuple([row, col, 0])]
                     else:
@@ -202,8 +186,8 @@ class Takuzu(Problem):
     
                 
     def actions(self, state: TakuzuState): #(linha, coluna, val)
-        """Retorna uma lista de ações que podem ser executadas a
-        partir do estado passado como argumento."""
+        """Returns a list of actions which can be executed from the state which was
+        passed as an argument."""
         free_pos = []
         free_pos += self.check_row(state.board, state.size, state.half_size)
         if(free_pos != []):
@@ -223,10 +207,9 @@ class Takuzu(Problem):
         return free_pos
 
     def result(self, state: TakuzuState, action):#(linha, coluna, val)
-        """Retorna o estado resultante de executar a 'action' sobre
-        'state' passado como argumento. A ação a executar deve ser uma
-        das presentes na lista obtida pela execução de
-        self.actions(state)."""
+        """Returns the state resulting from the execution of an 'action' on 'state'
+        passed as an argument. The action to execute should be from the list of actions
+        obtained from self.actions(state)."""
         new_state = TakuzuState(state.board)
         new_state.state_id = state.state_id + 1
         new_state.size = state.size
@@ -236,9 +219,8 @@ class Takuzu(Problem):
         return new_state
     
     def goal_test(self, state: TakuzuState):
-        """Retorna True se e só se o estado passado como argumento é
-        um estado objetivo. Deve verificar se todas as posições do tabuleiro
-        estão preenchidas com uma sequência de números adjacentes."""
+        """Returns True only if the state passed as argument is an objective state. Checks if no
+        takuzu rule is being broken."""
         #Teste de posiçoes seguidas com valores iguais
         if not(state.free_spc == 0):
             return False
@@ -261,17 +243,10 @@ class Takuzu(Problem):
 
         return True
 
-    def h(self, node: Node):
-        """Função heuristica utilizada para a procura A*."""
-        value = np.count_nonzero(np.array(node.state.board) == 2) * 2
-        value += np.count_nonzero(np.array(node.state.board) == 1)
-        return value
-
 
 if __name__ == "__main__":
     board = Board.parse_instance_from_stdin()
     problem = Takuzu(board)
-    #compare_searchers(problems = [problem], header = ['Searcher', 'Nós'])
     final = depth_first_tree_search(problem)
     for row in range(final.state.size):
         for col in range(final.state.size):
@@ -280,9 +255,5 @@ if __name__ == "__main__":
                 
             else:
                 print('{}'.format(final.state.board[row][col]), end='\n')
-    # TODO:
-    # Ler o ficheiro do standard input,
-    # Usar uma técnica de procura para resolver a instância,
-    # Retirar a solução a partir do nó resultante,
-    # Imprimir para o standard output no formato indicado.
+
 
